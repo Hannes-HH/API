@@ -18,16 +18,75 @@ app.use(express.json());
   Endpoint to handle GET requests to the root URI "/"
 */
 app.get("/", (req, res) => {
-  res.json({
-    "/posts": "read and create new posts",
-    "/posts/:id": "read, update and delete an individual post",
+  db.findAll()
+    .then((posts) => {
+      res.status(200);
+      res.json(posts);
+    })
+    .catch((error) => {
+      res.status(500);
+      res.json({
+        error: `Internal Server Error: ${error}`,
+      });
+    });
+});
+app.post("/posts", (req, res) => {
+  db.insert(req, body)
+    .then((newPost) => {
+      console.log(newPost);
+      res.status(201);
+      res.json(newPost);
+    })
+    .catch((error) => {
+      res.status(500);
+      res.json({
+        error: `Internal Error: ${error}`,
+      });
+    });
+});
+app.get("/posts/:id", (req, res) => {
+  const { id } = req.params;
+  db.findById(id)
+    .then((post) => {
+      res.status(200);
+      res.json(post);
+    })
+    .catch((error) => {
+      res.status(500);
+      res.json({
+        error: "Internal Server Error",
+      });
+    });
+});
+app.patch("/posts/:id", (req, res) => {
+  const { id } = req.params;
+  db.updateById(id, req.body)
+    .then((updatedPost) => {
+      if (updatedPost) {
+        res.status(200);
+        res.json(updatedPost);
+      } else {
+        res.status(400);
+        res.json({
+          error: `Post with ${id} not found`,
+        });
+      }
+    })
+    .catch((error) => {
+      res.status(500);
+      res.json({ error: `Internal Server error ${error}` });
+    });
+});
+
+app.delete("/posts/:id", (req, res) => {
+  const { id } = req.params;
+  db.deleteById(id).then((post) => {
+    res.status(204);
+    res.json(post);
+    console.log(`Post with ${id} is deleted`);
   });
 });
 
-/*
-  We have to start the server. We make it listen on the port 4000
-
-*/
 app.listen(4000, () => {
   console.log("Listening on http://localhost:4000");
 });
