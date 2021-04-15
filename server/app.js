@@ -1,4 +1,6 @@
 const express = require("express");
+const cors = require("cors");
+const { restart } = require("nodemon");
 const db = require("./lib/db");
 
 /*
@@ -13,6 +15,13 @@ const app = express();
   https://expressjs.com/en/guide/using-middleware.html
 */
 app.use(express.json());
+app.use(cors());
+app.use((req, res, next) => {
+  const { method, url } = req;
+  console.log("My custom middleware");
+  console.log(`${method} ${url}`);
+  next();
+});
 
 /*
   Endpoint to handle GET requests to the root URI "/"
