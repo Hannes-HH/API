@@ -1,7 +1,9 @@
+require ("dotenv").config(); 
 const express = require("express");
 const cors = require("cors");
-const { restart } = require("nodemon");
+const mongoose = require("mongoose");
 const db = require("./lib/db");
+const Post = require("./models/post");
 
 /*
   We create an express app calling
@@ -27,7 +29,7 @@ app.use((req, res, next) => {
   Endpoint to handle GET requests to the root URI "/"
 */
 app.get("/", (req, res) => {
-  db.findAll()
+  Post.findAll()
     .then((posts) => {
       res.status(200);
       res.json(posts);
@@ -40,22 +42,15 @@ app.get("/", (req, res) => {
     });
 });
 app.post("/posts", (req, res) => {
-  db.insert(req, body)
-    .then((newPost) => {
-      console.log(newPost);
-      res.status(201);
-      res.json(newPost);
-    })
-    .catch((error) => {
-      res.status(500);
-      res.json({
-        error: `Internal Error: ${error}`,
-      });
-    });
+  Post.create(req.body).then((newPost) => {
+    res.status(201);
+    res.json(newPost);
+  });
 });
+
 app.get("/posts/:id", (req, res) => {
   const { id } = req.params;
-  db.findById(id)
+  Post.findById(req.params.id)
     .then((post) => {
       res.status(200);
       res.json(post);
@@ -69,7 +64,7 @@ app.get("/posts/:id", (req, res) => {
 });
 app.patch("/posts/:id", (req, res) => {
   const { id } = req.params;
-  db.updateById(id, req.body)
+  Post.findByIdAndUpdate(id, req.body)
     .then((updatedPost) => {
       if (updatedPost) {
         res.status(200);
@@ -89,13 +84,23 @@ app.patch("/posts/:id", (req, res) => {
 
 app.delete("/posts/:id", (req, res) => {
   const { id } = req.params;
-  db.deleteById(id).then((post) => {
+  Post.findbyDeleteandUpdate(req.params.id).then((post) => {
     res.status(204);
     res.json(post);
     console.log(`Post with ${id} is deleted`);
   });
 });
+mongoose.connect("mongodb://localhost/Students", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-app.listen(4000, () => {
-  console.log("Listening on http://localhost:4000");
+const mongodb = mongoose.connection;
+
+const { PORT } = process.env; 
+
+mongodb.on("open", () => {
+  app.listen(Port, () => {
+    console.log(`Listening on port ${Port}`);
+  });
 });
